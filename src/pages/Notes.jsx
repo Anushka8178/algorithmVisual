@@ -5,12 +5,7 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../components/ToastProvider';
-<<<<<<< HEAD
-
-const API_URL = 'http://localhost:5000/api';
-=======
 import { API_URL } from '../apiConfig';
->>>>>>> 798b7cc (Initial commit: deployment prep and API config updates)
 
 export default function Notes(){
   const { theme } = useTheme();

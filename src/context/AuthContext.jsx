@@ -1,8 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
-<<<<<<< HEAD
-=======
 import { API_URL } from '../apiConfig';
->>>>>>> 798b7cc (Initial commit: deployment prep and API config updates)
 
 const AuthContext = createContext(null);
 
@@ -30,11 +27,7 @@ export function AuthProvider({ children }) {
     setLoading(true);
     try {
       console.log('Logging in user:', email);
-<<<<<<< HEAD
-      const response = await fetch('http://localhost:5000/api/auth/login', {
-=======
       const response = await fetch(`${API_URL}/auth/login`, {
->>>>>>> 798b7cc (Initial commit: deployment prep and API config updates)
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -79,11 +72,7 @@ export function AuthProvider({ children }) {
     } catch (e) {
       console.error('Login error:', e);
       if (e.message.includes('Failed to fetch') || e.message.includes('NetworkError')) {
-<<<<<<< HEAD
-        return { success: false, message: 'Cannot connect to server. Please ensure the backend is running on http://localhost:5000' };
-=======
         return { success: false, message: `Cannot connect to server. Please ensure the backend is running on ${API_URL}` };
->>>>>>> 798b7cc (Initial commit: deployment prep and API config updates)
       }
       return { success: false, message: e.message || 'Login failed. Please try again.' };
     } finally {
@@ -95,11 +84,7 @@ export function AuthProvider({ children }) {
     setLoading(true);
     try {
       console.log('Registering user:', { name, email });
-<<<<<<< HEAD
-      const response = await fetch('http://localhost:5000/api/auth/register', {
-=======
       const response = await fetch(`${API_URL}/auth/register`, {
->>>>>>> 798b7cc (Initial commit: deployment prep and API config updates)
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -134,11 +119,7 @@ export function AuthProvider({ children }) {
     if (!authToken) return;
 
     try {
-<<<<<<< HEAD
-      const response = await fetch('http://localhost:5000/api/progress/stats', {
-=======
       const response = await fetch(`${API_URL}/progress/stats`, {
->>>>>>> 798b7cc (Initial commit: deployment prep and API config updates)
         headers: {
           'Authorization': `Bearer ${authToken}`,
         },
@@ -155,11 +136,7 @@ export function AuthProvider({ children }) {
         console.log('Fetched user stats:', data.stats);
         setUserStats(data.stats);
 
-<<<<<<< HEAD
-        const historyResponse = await fetch('http://localhost:5000/api/progress/history', {
-=======
         const historyResponse = await fetch(`${API_URL}/progress/history`, {
->>>>>>> 798b7cc (Initial commit: deployment prep and API config updates)
           headers: {
             'Authorization': `Bearer ${authToken}`,
           },
@@ -202,11 +179,7 @@ export function AuthProvider({ children }) {
     }
 
     try {
-<<<<<<< HEAD
-      const algoResponse = await fetch(`http://localhost:5000/api/algorithms/${slug}`);
-=======
       const algoResponse = await fetch(`${API_URL}/algorithms/${slug}`);
->>>>>>> 798b7cc (Initial commit: deployment prep and API config updates)
       if (!algoResponse.ok) {
         const errorText = await algoResponse.text();
         const message = errorText || 'Algorithm not found on the server.';
@@ -215,11 +188,7 @@ export function AuthProvider({ children }) {
       }
       const algorithm = await algoResponse.json();
 
-<<<<<<< HEAD
-      const response = await fetch('http://localhost:5000/api/progress/complete', {
-=======
       const response = await fetch(`${API_URL}/progress/complete`, {
->>>>>>> 798b7cc (Initial commit: deployment prep and API config updates)
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

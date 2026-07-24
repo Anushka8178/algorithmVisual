@@ -3,12 +3,7 @@ import { motion } from 'framer-motion';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-<<<<<<< HEAD
-
-const API_URL = 'http://localhost:5000/api';
-=======
 import { API_URL } from '../apiConfig';
->>>>>>> 798b7cc (Initial commit: deployment prep and API config updates)
 
 export default function Leaderboard(){
   const { user } = useAuth();

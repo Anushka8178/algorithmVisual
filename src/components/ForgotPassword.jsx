@@ -2,10 +2,7 @@ import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useToast } from './ToastProvider';
-<<<<<<< HEAD
-=======
 import { API_URL } from '../apiConfig';
->>>>>>> 798b7cc (Initial commit: deployment prep and API config updates)
 
 const validateEmail = (email) => {
   if (!email || email.trim().length === 0) {
@@ -111,11 +108,7 @@ export default function ForgotPassword() {
 
     setSubmitting(true);
     try {
-<<<<<<< HEAD
-      const res = await fetch('http://localhost:5000/api/auth/forgot-password', {
-=======
       const res = await fetch(`${API_URL}/auth/forgot-password`, {
->>>>>>> 798b7cc (Initial commit: deployment prep and API config updates)
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

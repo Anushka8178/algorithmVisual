@@ -1,9 +1,6 @@
 import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-<<<<<<< HEAD
-=======
 import { API_URL } from '../apiConfig';
->>>>>>> 798b7cc (Initial commit: deployment prep and API config updates)
 import { useTheme } from '../context/ThemeContext';
 import ThemeToggle from './ThemeToggle';
 import { useEffect, useState } from 'react';
@@ -27,11 +24,7 @@ export default function Navbar() {
         return;
       }
       try {
-<<<<<<< HEAD
-        const res = await fetch('http://localhost:5000/api/messages/unread/count', {
-=======
         const res = await fetch(`${API_URL}/messages/unread/count`, {
->>>>>>> 798b7cc (Initial commit: deployment prep and API config updates)
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!res.ok) return;

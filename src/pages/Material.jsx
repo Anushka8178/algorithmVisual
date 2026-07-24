@@ -5,13 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { motion } from 'framer-motion';
 import { useToast } from '../components/ToastProvider';
-<<<<<<< HEAD
-
-const API_BASE = 'http://localhost:5000';
-const API_URL = `${API_BASE}/api`;
-=======
 import { API_URL } from '../apiConfig';
->>>>>>> 798b7cc (Initial commit: deployment prep and API config updates)
 
 const fallbackContent = {
   'bubble-sort': {
