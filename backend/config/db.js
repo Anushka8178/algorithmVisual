@@ -1,69 +1,72 @@
 import { Sequelize } from "sequelize";
 import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 dotenv.config();
 
-const isProduction = process.env.NODE_ENV === "production";
 const databaseUrl = process.env.DATABASE_URL;
-const dbName = process.env.DB_NAME;
-const dbUser = process.env.DB_USER;
-const dbPass = process.env.DB_PASS;
+const useSqlite = process.env.USE_SQLITE === "true" || process.env.DB_DIALECT === "sqlite";
+const dbName = process.env.DB_NAME || "algodb";
+const dbUser = process.env.DB_USER || "postgres";
+const dbPass = process.env.DB_PASS || "postgres";
 const dbHost = process.env.DB_HOST || "localhost";
 const dbPort = process.env.DB_PORT || 5433;
 
-if (!databaseUrl && (!dbName || !dbUser || !dbPass)) {
-  console.error("Database configuration missing!");
-  console.error("Required environment variables:");
-  console.error("  - DATABASE_URL:", databaseUrl ? "SET" : "MISSING");
-  console.error("  - DB_NAME:", dbName || "MISSING");
-  console.error("  - DB_USER:", dbUser || "MISSING");
-  console.error("  - DB_PASS:", dbPass ? "***" : "MISSING");
-  console.error("\nPlease check your .env file in the backend directory.");
-  process.exit(1);
-}
-
-const sequelize = databaseUrl
-  ? new Sequelize(databaseUrl, {
+const createSequelizeInstance = () => {
+  if (databaseUrl) {
+    console.log("📡 Connecting to PostgreSQL via DATABASE_URL...");
+    return new Sequelize(databaseUrl, {
       dialect: "postgres",
       logging: false,
       dialectOptions: {
         ssl: { require: true, rejectUnauthorized: false },
         connectTimeout: 10000,
       },
-      retry: {
-        max: 3,
-      },
-    })
-  : new Sequelize(dbName, dbUser, dbPass, {
-      host: dbHost,
-      port: dbPort,
-      dialect: "postgres",
-      logging: false,
-      dialectOptions: {
-        connectTimeout: 10000,
-      },
-      retry: {
-        max: 3,
-      },
+      retry: { max: 3 },
     });
+  }
 
-// Test connection
-sequelize.authenticate()
-  .then(() => {
-    console.log("✅ Database connection authenticated");
-  })
-  .catch((err) => {
-    console.error("Database authentication failed!");
-    console.error("Error details:", err.message);
-    console.error("\nTroubleshooting:");
-    console.error("1. Check if PostgreSQL is running");
-    console.error("2. Verify database credentials in .env file:");
-    console.error(`   DB_NAME=${dbName}`);
-    console.error(`   DB_USER=${dbUser}`);
-    console.error(`   DB_HOST=${dbHost}`);
-    console.error(`   DB_PORT=${dbPort}`);
-    console.error("3. Make sure the database exists: CREATE DATABASE " + dbName + ";");
-    console.error("4. Verify the user has access to the database");
-    process.exit(1);
+  if (useSqlite) {
+    console.log("📦 Using SQLite file database (algodb.sqlite)...");
+    return new Sequelize({
+      dialect: "sqlite",
+      storage: path.join(__dirname, "..", "algodb.sqlite"),
+      logging: false,
+    });
+  }
+
+  console.log(`🔌 Connecting to PostgreSQL at ${dbHost}:${dbPort}...`);
+  return new Sequelize(dbName, dbUser, dbPass, {
+    host: dbHost,
+    port: dbPort,
+    dialect: "postgres",
+    logging: false,
+    dialectOptions: {
+      connectTimeout: 5000,
+    },
+    retry: { max: 1 },
   });
+};
+
+let sequelize = createSequelizeInstance();
+
+try {
+  await sequelize.authenticate();
+  console.log("✅ Database connection authenticated");
+} catch (err) {
+  console.warn("⚠️ Primary database connection failed:", err.message);
+  console.log("🔄 Automatically switching to embedded SQLite database...");
+  sequelize = new Sequelize({
+    dialect: "sqlite",
+    storage: path.join(__dirname, "..", "algodb.sqlite"),
+    logging: false,
+  });
+  await sequelize.authenticate();
+  console.log("✅ Fallback SQLite database connected successfully!");
+}
 
 export default sequelize;
