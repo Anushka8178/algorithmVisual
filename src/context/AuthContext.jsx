@@ -1,0 +1,314 @@
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+<<<<<<< HEAD
+=======
+import { API_URL } from '../apiConfig';
+>>>>>>> 798b7cc (Initial commit: deployment prep and API config updates)
+
+const AuthContext = createContext(null);
+
+export function AuthProvider({ children }) {
+  const [token, setToken] = useState(() => localStorage.getItem('av_token'));
+  const [user, setUser] = useState(() => {
+    const raw = localStorage.getItem('av_user');
+    return raw ? JSON.parse(raw) : null;
+  });
+  const [loading, setLoading] = useState(false);
+  const [userStats, setUserStats] = useState(null);
+  const [completedAlgorithms, setCompletedAlgorithms] = useState([]);
+
+  useEffect(() => {
+    if (token) localStorage.setItem('av_token', token);
+    else localStorage.removeItem('av_token');
+  }, [token]);
+
+  useEffect(() => {
+    if (user) localStorage.setItem('av_user', JSON.stringify(user));
+    else localStorage.removeItem('av_user');
+  }, [user]);
+
+  const login = async ({ email, password }) => {
+    setLoading(true);
+    try {
+      console.log('Logging in user:', email);
+<<<<<<< HEAD
+      const response = await fetch('http://localhost:5000/api/auth/login', {
+=======
+      const response = await fetch(`${API_URL}/auth/login`, {
+>>>>>>> 798b7cc (Initial commit: deployment prep and API config updates)
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      let data;
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        try {
+          data = await response.json();
+        } catch (parseError) {
+          console.error('Failed to parse JSON response:', parseError);
+          return { success: false, message: 'Server error. Invalid response format.' };
+        }
+      } else {
+        const text = await response.text();
+        console.error('Non-JSON response:', text);
+        return { success: false, message: text || 'Server error. Please check if the backend is running.' };
+      }
+
+      console.log('Login response:', { status: response.status, hasToken: !!data.token, error: data.error });
+
+      if (response.ok && data.token) {
+        setToken(data.token);
+        const newUser = {
+          id: data.user.id,
+          email: data.user.email,
+          username: data.user.username,
+          name: data.user.username,
+          role: data.user.role || 'student'
+        };
+        setUser(newUser);
+
+        await fetchUserStats(data.token);
+
+        return { success: true, role: newUser.role };
+      } else {
+        return { success: false, message: data.error || data.message || 'Login failed' };
+      }
+    } catch (e) {
+      console.error('Login error:', e);
+      if (e.message.includes('Failed to fetch') || e.message.includes('NetworkError')) {
+<<<<<<< HEAD
+        return { success: false, message: 'Cannot connect to server. Please ensure the backend is running on http://localhost:5000' };
+=======
+        return { success: false, message: `Cannot connect to server. Please ensure the backend is running on ${API_URL}` };
+>>>>>>> 798b7cc (Initial commit: deployment prep and API config updates)
+      }
+      return { success: false, message: e.message || 'Login failed. Please try again.' };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const register = async ({ name, email, password, role = 'student' }) => {
+    setLoading(true);
+    try {
+      console.log('Registering user:', { name, email });
+<<<<<<< HEAD
+      const response = await fetch('http://localhost:5000/api/auth/register', {
+=======
+      const response = await fetch(`${API_URL}/auth/register`, {
+>>>>>>> 798b7cc (Initial commit: deployment prep and API config updates)
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username: name, email, password, role }),
+      });
+
+      const data = await response.json();
+      console.log('Registration response:', { status: response.status, data });
+
+      if (response.ok) {
+        return { success: true, message: data.message || 'Registration successful' };
+      } else {
+        return { success: false, message: data.error || 'Registration failed' };
+      }
+    } catch (e) {
+      console.error('Registration error:', e);
+      return { success: false, message: 'Registration failed. Please try again.' };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const logout = () => {
+    setToken(null);
+    setUser(null);
+    setUserStats(null);
+    setCompletedAlgorithms([]);
+  };
+
+  const fetchUserStats = async (authToken) => {
+    if (!authToken) return;
+
+    try {
+<<<<<<< HEAD
+      const response = await fetch('http://localhost:5000/api/progress/stats', {
+=======
+      const response = await fetch(`${API_URL}/progress/stats`, {
+>>>>>>> 798b7cc (Initial commit: deployment prep and API config updates)
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+        },
+      });
+
+      if (response.status === 401 || response.status === 403) {
+        console.warn('Stats request failed – invalid token. Logging out.');
+        logout();
+        return;
+      }
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Fetched user stats:', data.stats);
+        setUserStats(data.stats);
+
+<<<<<<< HEAD
+        const historyResponse = await fetch('http://localhost:5000/api/progress/history', {
+=======
+        const historyResponse = await fetch(`${API_URL}/progress/history`, {
+>>>>>>> 798b7cc (Initial commit: deployment prep and API config updates)
+          headers: {
+            'Authorization': `Bearer ${authToken}`,
+          },
+        });
+
+        if (historyResponse.status === 401 || historyResponse.status === 403) {
+          console.warn('History request failed – invalid token. Logging out.');
+          logout();
+          return;
+        }
+
+        if (historyResponse.ok) {
+          const history = await historyResponse.json();
+          const completed = history
+            .filter(p => p.activityType === 'completed')
+            .map(p => p.Algorithm?.slug || p.algorithmId)
+            .filter(Boolean);
+          setCompletedAlgorithms([...new Set(completed)]);
+        }
+      } else {
+        const errorText = await response.text();
+        console.error('Failed to fetch stats:', response.status, errorText);
+      }
+    } catch (error) {
+      console.error('Error fetching user stats:', error);
+    }
+  };
+
+  const hasCompleted = (slug) => completedAlgorithms.includes(slug);
+
+  const completeAlgorithm = async (slug) => {
+    if (!token) {
+      const message = 'You must be logged in to track progress.';
+      console.warn(message);
+      return { success: false, message };
+    }
+
+    if (hasCompleted(slug)) {
+      return { success: true, message: 'Already completed.' };
+    }
+
+    try {
+<<<<<<< HEAD
+      const algoResponse = await fetch(`http://localhost:5000/api/algorithms/${slug}`);
+=======
+      const algoResponse = await fetch(`${API_URL}/algorithms/${slug}`);
+>>>>>>> 798b7cc (Initial commit: deployment prep and API config updates)
+      if (!algoResponse.ok) {
+        const errorText = await algoResponse.text();
+        const message = errorText || 'Algorithm not found on the server.';
+        console.error('Algorithm lookup failed:', algoResponse.status, message);
+        return { success: false, message };
+      }
+      const algorithm = await algoResponse.json();
+
+<<<<<<< HEAD
+      const response = await fetch('http://localhost:5000/api/progress/complete', {
+=======
+      const response = await fetch(`${API_URL}/progress/complete`, {
+>>>>>>> 798b7cc (Initial commit: deployment prep and API config updates)
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          algorithmId: algorithm.id,
+          activityType: 'completed',
+        }),
+      });
+
+      const parseErrorMessage = async () => {
+        try {
+          const data = await response.clone().json();
+          return data?.error || data?.message || '';
+        } catch {
+          return await response.text();
+        }
+      };
+
+      if (response.status === 401 || response.status === 403) {
+        console.warn('Progress request failed – invalid token. Logging out.');
+        logout();
+        return { success: false, message: 'Session expired. Please log in again.' };
+      }
+
+      if (response.ok) {
+        await response.json();
+        setCompletedAlgorithms(prev => [...prev, slug]);
+
+        // Immediately update user stats with the response data if available
+        if (data.user) {
+          setUserStats(prev => ({
+            ...prev,
+            streak: data.user.streak,
+            totalEngagement: data.user.totalEngagement,
+          }));
+        }
+
+        // Also fetch fresh stats to ensure everything is up to date
+        await fetchUserStats(token);
+        return { success: true };
+      } else {
+        const message = (await parseErrorMessage()) || 'Failed to track progress.';
+        console.error('Failed to track progress:', response.status, message);
+        return { success: false, message };
+      }
+    } catch (error) {
+      console.error('Error completing algorithm:', error);
+      return { success: false, message: error.message || 'Unexpected error while tracking progress.' };
+    }
+  };
+
+  useEffect(() => {
+    if (token) {
+      fetchUserStats(token);
+    }
+  }, [token, user?.id]);
+
+  // Refresh stats periodically to keep streak updated
+  useEffect(() => {
+    if (!token) return;
+
+    const interval = setInterval(() => {
+      fetchUserStats(token);
+    }, 30000); // Refresh every 30 seconds
+
+    return () => clearInterval(interval);
+  }, [token]);
+
+  const value = useMemo(() => ({
+    token,
+    user,
+    loading,
+    login,
+    logout,
+    register,
+    isAuthenticated: Boolean(token),
+    userStats,
+    hasCompleted,
+    completeAlgorithm
+  }), [token, user, loading, userStats, completedAlgorithms]);
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
+  return ctx;
+}
+
