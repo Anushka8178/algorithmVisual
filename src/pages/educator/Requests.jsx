@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import EducatorLayout from '../../components/EducatorLayout';
+import { API_URL } from '../../apiConfig';
 
 const statusStyles = {
   pending: 'bg-yellow-400/20 text-yellow-200 border-yellow-200/40',
@@ -19,7 +20,7 @@ export default function Requests() {
   const fetchRequests = async () => {
     try {
       setLoading(true);
-      const res = await fetch('http://localhost:5000/api/requests', { headers: { Authorization: `Bearer ${token}` }});
+      const res = await fetch(`${API_URL}/requests`, { headers: { Authorization: `Bearer ${token}` }});
       const data = await res.json();
       if(res.ok) setRows(data.requests || []);
       else setError(data.error || 'Failed to load');
@@ -37,7 +38,7 @@ export default function Requests() {
   const markCompleted = async (id) => {
     try {
       setUpdatingId(id);
-      const res = await fetch(`http://localhost:5000/api/requests/${id}`, {
+      const res = await fetch(`${API_URL}/requests/${id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

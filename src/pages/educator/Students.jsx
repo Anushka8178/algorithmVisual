@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import EducatorLayout from '../../components/EducatorLayout';
+import { API_URL } from '../../apiConfig';
 
 export default function Students() {
   const { token } = useAuth();
@@ -12,7 +13,7 @@ export default function Students() {
     (async () => {
       try {
         setLoading(true);
-        const res = await fetch('http://localhost:5000/api/educator/students', {
+        const res = await fetch(`${API_URL}/educator/students`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (res.ok) {

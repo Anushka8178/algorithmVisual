@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
+import { API_URL } from '../apiConfig';
 
 export default function MessagesInbox() {
   const { token } = useAuth();
@@ -15,7 +16,7 @@ export default function MessagesInbox() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('http://localhost:5000/api/messages', {
+      const res = await fetch(`${API_URL}/messages`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) {
@@ -42,7 +43,7 @@ export default function MessagesInbox() {
     if (!token) return;
     setMarking(messageId);
     try {
-      const res = await fetch(`http://localhost:5000/api/messages/${messageId}/read`, {
+      const res = await fetch(`${API_URL}/messages/${messageId}/read`, {
         method: 'PATCH',
         headers: { Authorization: `Bearer ${token}` },
       });

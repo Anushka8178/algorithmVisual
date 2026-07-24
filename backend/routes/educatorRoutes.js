@@ -7,6 +7,7 @@ import Note from "../models/Note.js";
 import Algorithm from "../models/Algorithm.js";
 import Request from "../models/Request.js";
 import Message from "../models/Message.js";
+import { sendEmail } from "../utils/emailService.js";
 
 const router = express.Router();
 
@@ -68,7 +69,7 @@ router.post("/resources", upload.single("file"), async (req, res) => {
 
 // Message a particular student
 router.post("/messages", async (req, res) => {
-  const { studentId, studentIdentifier, subject, message } = req.body;
+  const { studentId, studentIdentifier, targetEmail, subject, message } = req.body;
 
   if (!message || !message.trim()) {
     return res.status(400).json({ error: "Message content is required" });
@@ -109,8 +110,31 @@ router.post("/messages", async (req, res) => {
     studentId: student.id,
   });
 
+  const emailSubject = subject && subject.trim() ? subject.trim().slice(0, 150) : "Message from your educator";
+  const emailBody = `Hello ${student.username || "student"},\n\n${req.user.username || "Your educator"} sent you a message:\n\n${message.trim()}\n\nPlease sign in to your account to view this message in your inbox.\n\nThanks,\nAlgorithm Visualizer`;
+
+  const emailRecipient = targetEmail && targetEmail.trim() ? targetEmail.trim() : student.email?.trim();
+
+  const emailResult = await sendEmail({
+    to: emailRecipient,
+    subject: emailSubject,
+    text: emailBody,
+    html: `<p>Hello ${student.username || "student"},</p><p>${req.user.username || "Your educator"} sent you a message:</p><blockquote>${message.trim().replace(/\n/g, "<br />")}</blockquote><p>Please sign in to your account to view this message in your inbox.</p><p>Thanks,<br />Algorithm Visualizer</p>`,
+  });
+
+  const emailSent = typeof emailResult === "object" ? !!emailResult.success : !!emailResult;
+  const emailError = typeof emailResult === "object" ? emailResult.error || null : null;
+
+  console.log(`[messages] educator=${req.user.id} student=${student.id} recipient=${emailRecipient} saved=${savedMessage.id} emailSent=${emailSent} emailError=${emailError}`);
+
+  if (!emailSent) {
+    console.warn(`[messages] message saved but email not delivered to ${emailRecipient}: ${emailError}`);
+  }
+
   res.json({
-    message: "Message queued for delivery",
+    message: emailSent
+      ? `Message sent and email delivered to ${emailRecipient}`
+      : `Message saved in inbox, but email delivery to ${emailRecipient} failed (${emailError || "Check server SMTP configuration"})`,
     data: {
       id: savedMessage.id,
       student: {
@@ -118,6 +142,9 @@ router.post("/messages", async (req, res) => {
         username: student.username,
         email: student.email,
       },
+      recipientEmail: emailRecipient,
+      emailSent,
+      emailError,
     },
   });
 });

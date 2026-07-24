@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import EducatorLayout from '../../components/EducatorLayout';
 import { useAuth } from '../../context/AuthContext';
+import { API_URL } from '../../apiConfig';
 
 export default function EducatorProfile() {
   const { user, token } = useAuth();
@@ -15,10 +16,10 @@ export default function EducatorProfile() {
     (async () => {
       try {
         const [algorithmsRes, requestsRes] = await Promise.all([
-          fetch('http://localhost:5000/api/algorithms', {
+          fetch(`${API_URL}/algorithms`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          fetch('http://localhost:5000/api/requests', {
+          fetch(`${API_URL}/requests`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);

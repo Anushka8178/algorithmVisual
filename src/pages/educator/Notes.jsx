@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import EducatorLayout from '../../components/EducatorLayout';
+import { API_URL } from '../../apiConfig';
 
 export default function EducatorNotes() {
   const { token } = useAuth();
@@ -10,7 +11,7 @@ export default function EducatorNotes() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/educator/notes', { headers: { Authorization: `Bearer ${token}` } });
+        const res = await fetch(`${API_URL}/educator/notes`, { headers: { Authorization: `Bearer ${token}` } });
         if (res.ok) {
           const data = await res.json();
           setNotes(data.notes || []);

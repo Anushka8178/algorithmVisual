@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../components/ToastProvider';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import EducatorLayout from '../../components/EducatorLayout';
+import { API_URL } from '../../apiConfig';
 
 const categories = ['Sorting', 'Searching', 'Graph', 'Dynamic Programming', 'Data Structures', 'Other'];
 
@@ -31,7 +32,7 @@ export default function AddAlgorithm() {
       const fetchAlgorithm = async () => {
         setLoading(true);
         try {
-          const res = await fetch(`http://localhost:5000/api/algorithms/${editSlug}`, {
+          const res = await fetch(`${API_URL}/algorithms/${editSlug}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           if (res.ok) {
@@ -68,8 +69,8 @@ export default function AddAlgorithm() {
     setSubmitting(true);
     try {
       const url = isEditMode
-        ? `http://localhost:5000/api/algorithms/${editSlug}`
-        : 'http://localhost:5000/api/algorithms';
+        ? `${API_URL}/algorithms/${editSlug}`
+        : `${API_URL}/algorithms`;
       const method = isEditMode ? 'PATCH' : 'POST';
 
       const res = await fetch(url, {

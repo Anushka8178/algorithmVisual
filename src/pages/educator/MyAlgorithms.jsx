@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useToast } from '../../components/ToastProvider';
+import { API_URL } from '../../apiConfig';
 
 export default function MyAlgorithms() {
   const { token } = useAuth();
@@ -17,7 +18,7 @@ export default function MyAlgorithms() {
   const fetchAlgorithms = async () => {
     try {
       setLoading(true);
-      const res = await fetch('http://localhost:5000/api/algorithms', {
+      const res = await fetch(`${API_URL}/algorithms`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
@@ -55,7 +56,7 @@ export default function MyAlgorithms() {
 
     setDeletingId(algorithm.id);
     try {
-      const res = await fetch(`http://localhost:5000/api/algorithms/${algorithm.slug}`, {
+      const res = await fetch(`${API_URL}/algorithms/${algorithm.slug}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });

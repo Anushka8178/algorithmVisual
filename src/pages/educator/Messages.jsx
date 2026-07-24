@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../components/ToastProvider';
 import EducatorLayout from '../../components/EducatorLayout';
+import { API_URL } from '../../apiConfig';
 
 export default function Messages() {
   const { token } = useAuth();
@@ -9,6 +10,7 @@ export default function Messages() {
   const [students, setStudents] = useState([]);
   const [search, setSearch] = useState('');
   const [selectedStudentId, setSelectedStudentId] = useState('');
+  const [targetEmail, setTargetEmail] = useState('');
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
@@ -17,7 +19,7 @@ export default function Messages() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/educator/students', {
+        const res = await fetch(`${API_URL}/educator/students`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (res.ok) {
@@ -39,6 +41,16 @@ export default function Messages() {
     );
   }, [students, search]);
 
+  const handleStudentSelect = (studentId) => {
+    setSelectedStudentId(studentId);
+    if (studentId) {
+      const found = students.find((s) => String(s.id) === String(studentId));
+      if (found && found.email) {
+        setTargetEmail(found.email);
+      }
+    }
+  };
+
   const submit = async (e) => {
     e.preventDefault();
     if (!token) {
@@ -51,30 +63,37 @@ export default function Messages() {
       return;
     }
 
-    if (!selectedStudentId && !search.trim()) {
+    if (!selectedStudentId && !search.trim() && !targetEmail.trim()) {
       showToast('Please select a student by name or email', 'error');
       return;
     }
 
     setSending(true);
     try {
-      const res = await fetch('http://localhost:5000/api/educator/messages', {
+      const res = await fetch(`${API_URL}/educator/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           studentId: selectedStudentId || undefined,
           studentIdentifier: search.trim() || undefined,
+          targetEmail: targetEmail.trim() || undefined,
           subject,
           message,
         }),
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
-        showToast('Message sent successfully!', 'success');
+        const emailDelivered = data.data?.emailSent ?? true;
+        if (emailDelivered) {
+          showToast(data.message || 'Message sent and email delivered successfully!', 'success');
+        } else {
+          showToast(data.message || 'Message saved in student inbox, but SMTP email delivery failed.', 'warning');
+        }
         setMessage('');
         setSubject('');
         setSearch('');
         setSelectedStudentId('');
+        setTargetEmail('');
       } else {
         if (res.status === 401 || res.status === 403) {
           showToast('Session expired. Please log in again.', 'error');
@@ -100,7 +119,7 @@ export default function Messages() {
         onSubmit={submit}
         className="space-y-6 rounded-3xl border border-white/10 bg-slate-900/50 p-8 shadow-xl shadow-slate-900/30 backdrop-blur"
       >
-        <div className="grid gap-6 md:grid-cols-[minmax(0,1fr),minmax(0,1fr)]">
+        <div className="grid gap-6 md:grid-cols-3">
           <label className="block text-sm font-semibold text-slate-100">
             Search by name or email
             <input
@@ -114,7 +133,7 @@ export default function Messages() {
             Choose student
             <select
               value={selectedStudentId}
-              onChange={(e) => setSelectedStudentId(e.target.value)}
+              onChange={(e) => handleStudentSelect(e.target.value)}
               className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 text-sm text-white focus:border-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-400/40"
             >
               <option value="">-- Select learner --</option>
@@ -126,6 +145,16 @@ export default function Messages() {
                   </option>
                 ))}
             </select>
+          </label>
+          <label className="block text-sm font-semibold text-slate-100">
+            Destination Email Address
+            <input
+              type="email"
+              value={targetEmail}
+              onChange={(e) => setTargetEmail(e.target.value)}
+              placeholder="student@example.com"
+              className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 text-sm text-white placeholder:text-slate-400 focus:border-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-400/40"
+            />
           </label>
         </div>
 

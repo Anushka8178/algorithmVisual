@@ -4,8 +4,7 @@ import { motion } from 'framer-motion';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-
-const API_URL = 'http://localhost:5000/api';
+import { API_URL } from '../apiConfig';
 
 export default function Profile() {
   const { user, token } = useAuth();

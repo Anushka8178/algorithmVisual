@@ -16,8 +16,8 @@ import LinearSearchViz from '../visualizations/LinearSearchViz';
 import BFSSearchViz from '../visualizations/BFSSearchViz';
 import DFSSearchViz from '../visualizations/DFSSearchViz';
 import DijkstraViz from '../visualizations/DijkstraViz';
+import { API_URL } from '../apiConfig';
 
-const API_URL = 'http://localhost:5000/api';
 const BUILT_IN_ALGOS = [
   'bubble-sort',
   'quick-sort',

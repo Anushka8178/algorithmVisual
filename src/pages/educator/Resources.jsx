@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../components/ToastProvider';
 import EducatorLayout from '../../components/EducatorLayout';
+import { API_URL } from '../../apiConfig';
 
 export default function Resources() {
   const { token } = useAuth();
@@ -18,7 +19,7 @@ export default function Resources() {
   useEffect(()=>{
     (async ()=>{
       try{
-        const res = await fetch('http://localhost:5000/api/algorithms');
+        const res = await fetch(`${API_URL}/algorithms`);
         if(res.ok){
           const data = await res.json();
           setAlgorithms(data);
@@ -57,7 +58,7 @@ export default function Resources() {
         formData.append('file', file);
       }
       
-      const res = await fetch('http://localhost:5000/api/educator/resources', {
+      const res = await fetch(`${API_URL}/educator/resources`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: formData

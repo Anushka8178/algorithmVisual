@@ -1,6 +1,7 @@
 import Navbar from '../components/Navbar';
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { API_URL } from '../apiConfig';
 
 export default function RequestAlgorithm(){
   const { token } = useAuth();
@@ -11,7 +12,7 @@ export default function RequestAlgorithm(){
   const submit = async (e) => {
     e.preventDefault();
     setStatus(null);
-    const res = await fetch('http://localhost:5000/api/requests', {
+    const res = await fetch(`${API_URL}/requests`, {
       method: 'POST',
       headers: { 'Content-Type':'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ algorithmSlug, note })

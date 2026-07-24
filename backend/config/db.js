@@ -2,15 +2,18 @@ import { Sequelize } from "sequelize";
 import dotenv from "dotenv";
 dotenv.config();
 
+const isProduction = process.env.NODE_ENV === "production";
+const databaseUrl = process.env.DATABASE_URL;
 const dbName = process.env.DB_NAME;
 const dbUser = process.env.DB_USER;
 const dbPass = process.env.DB_PASS;
 const dbHost = process.env.DB_HOST || "localhost";
 const dbPort = process.env.DB_PORT || 5433;
 
-if (!dbName || !dbUser || !dbPass) {
+if (!databaseUrl && (!dbName || !dbUser || !dbPass)) {
   console.error("Database configuration missing!");
   console.error("Required environment variables:");
+  console.error("  - DATABASE_URL:", databaseUrl ? "SET" : "MISSING");
   console.error("  - DB_NAME:", dbName || "MISSING");
   console.error("  - DB_USER:", dbUser || "MISSING");
   console.error("  - DB_PASS:", dbPass ? "***" : "MISSING");
@@ -18,18 +21,30 @@ if (!dbName || !dbUser || !dbPass) {
   process.exit(1);
 }
 
-const sequelize = new Sequelize(dbName, dbUser, dbPass, {
-  host: dbHost,
-  port: dbPort,
-  dialect: "postgres",
-  logging: false, // Set to console.log for debugging
-  dialectOptions: {
-    connectTimeout: 10000,
-  },
-  retry: {
-    max: 3,
-  },
-});
+const sequelize = databaseUrl
+  ? new Sequelize(databaseUrl, {
+      dialect: "postgres",
+      logging: false,
+      dialectOptions: {
+        ssl: { require: true, rejectUnauthorized: false },
+        connectTimeout: 10000,
+      },
+      retry: {
+        max: 3,
+      },
+    })
+  : new Sequelize(dbName, dbUser, dbPass, {
+      host: dbHost,
+      port: dbPort,
+      dialect: "postgres",
+      logging: false,
+      dialectOptions: {
+        connectTimeout: 10000,
+      },
+      retry: {
+        max: 3,
+      },
+    });
 
 // Test connection
 sequelize.authenticate()

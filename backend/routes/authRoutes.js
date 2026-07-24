@@ -137,7 +137,7 @@ router.post("/forgot-password", async (req, res) => {
     }
 
     const user = await User.findOne({ where: { email: email.trim() } });
-    
+
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
@@ -163,12 +163,25 @@ router.post("/forgot-password", async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    await user.update({ password: hashedPassword });
 
-    await user.update({
-      password: hashedPassword,
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000);
+    await user.update({ resetToken, resetTokenExpiry });
+
+    const resetUrl = `${process.env.FRONTEND_URL || "http://localhost:5173"}/reset-password?token=${resetToken}`;
+    const mailSent = await sendPasswordResetEmail({
+      userEmail: user.email,
+      username: user.username,
+      resetToken,
+      resetUrl,
     });
 
-    res.status(200).json({ message: "Password has been reset successfully" });
+    if (!mailSent) {
+      return res.status(502).json({ error: "Password updated, but email could not be sent. Check SMTP settings." });
+    }
+
+    res.status(200).json({ message: "Password has been reset successfully. Check your email for the reset link." });
   } catch (err) {
     console.error("Forgot password error:", err);
     res.status(500).json({ error: err.message });
